@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>English Together</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5F4F0;--surface:#fff;--surface2:#F0EFE9;
+  --ink:#1A1A18;--ink2:#5A5A55;--ink3:#9A9A94;
+  --accent:#2E5BE0;--accent-l:#EBF0FF;
+  --green:#1A7A42;--green-l:#E8F5EE;
+  --orange:#C44A1A;--orange-l:#FFF0EA;
+  --purple:#6234A8;--purple-l:#F3EEFF;
+  --teal:#1A7A6E;--teal-l:#E4F7F5;
+  --red:#B83232;--red-l:#FDEAEA;
+  --border:#E2E0D8;--r:12px;
+}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+button{cursor:pointer;font-family:inherit}
+textarea,input{font-family:inherit}
+.screen{display:none;min-height:100vh}
+.screen.active{display:block}
+
+/* HOME */
+.hero{background:var(--ink);color:#fff;padding:36px 20px 28px;text-align:center}
+.hero h1{font-size:clamp(24px,6vw,38px);font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+.hero h1 em{color:#7B9BFF;font-style:normal}
+.hero p{font-size:13px;color:#999;margin-bottom:20px}
+.stats{display:flex;gap:10px;justify-content:center}
+.stat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 18px;text-align:center}
+.stat .n{font-size:26px;font-weight:800;color:#7B9BFF}
+.stat .l{font-size:11px;color:#888}
+.grid{padding:16px;display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));max-width:880px;margin:0 auto}
+.lcard{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .15s;position:relative}
+.lcard:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.lcard.done{border-color:var(--green)}
+.lcard.done::after{content:'✓';position:absolute;top:12px;right:12px;width:20px;height:20px;background:var(--green);color:#fff;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:20px;text-align:center}
+.lcard.locked{opacity:.45;cursor:not-allowed;pointer-events:none}
+.lcard .num{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.lcard .ttl{font-size:15px;font-weight:700;margin-bottom:3px}
+.lcard .meta{font-size:12px;color:var(--ink3)}
+.lcard .pbar{margin-top:10px;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.lcard .pbar-f{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+
+/* LESSON NAV */
+.lnav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100}
+.back-btn{background:none;border:none;font-size:22px;color:var(--ink2);padding:2px 6px;border-radius:6px}
+.lnav-title{flex:1;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lnav-prog{font-size:12px;color:var(--ink3);flex-shrink:0}
+.btabs{display:flex;gap:4px;padding:10px 14px;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);scrollbar-width:none}
+.btabs::-webkit-scrollbar{display:none}
+.btab{flex-shrink:0;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:12px;font-weight:500;color:var(--ink2);transition:all .15s;white-space:nowrap}
+.btab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.btab.done{border-color:var(--green);color:var(--green)}
+.lcontent{padding:14px;max-width:740px;margin:0 auto;padding-bottom:80px}
+
+/* BLOCK HEADER */
+.bhead{margin-bottom:18px}
+.bey{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:5px}
+.btitle{font-size:20px;font-weight:800;margin-bottom:4px}
+.bdesc{font-size:13px;color:var(--ink2);line-height:1.6}
+
+/* VOCAB */
+.vcontrols{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.vbtn{padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-size:12px;font-weight:500;color:var(--ink2);transition:all .15s}
+.vbtn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.vprog{height:4px;background:var(--border);border-radius:2px;margin-bottom:8px;overflow:hidden}
+.vprog-f{height:100%;background:var(--green);border-radius:2px;transition:width .3s}
+.vstatus{font-size:12px;color:var(--ink3);margin-bottom:12px}
+
+/* VOCAB TABLE */
+.vtable{width:100%;border-collapse:collapse;font-size:12px}
+.vtable th{background:var(--accent);color:#fff;padding:8px 10px;text-align:left;font-weight:600;font-size:11px}
+.vtable td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.vtable tr:nth-child(even) td{background:var(--surface2)}
+.vtable tr:last-child td{border-bottom:none}
+.vtable .wen{font-weight:700;font-size:13px}
+.vtable .wtr{color:var(--purple);font-style:italic;font-size:11px;display:block}
+.vtable .wtrru{color:var(--purple);font-size:11px;display:block}
+.vtable .wex{color:var(--ink2);font-style:italic;font-size:11px;display:block}
+.vtable .wexru{color:var(--ink3);font-size:10px;display:block}
+.speak-btn{background:none;border:none;font-size:18px;padding:2px;opacity:.7;transition:opacity .15s}
+.speak-btn:hover{opacity:1}
+.speak-btn.speaking{animation:pulse .6s infinite alternate}
+@keyframes pulse{from{opacity:.5}to{opacity:1}}
+.mark-btn{background:none;border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:11px;color:var(--ink3);transition:all .15s;white-space:nowrap}
+.mark-btn.known{background:var(--green-l);border-color:var(--green);color:var(--green)}
+.mark-btn.review{background:var(--orange-l);border-color:var(--orange);color:var(--orange)}
+
+/* FLASHCARD */
+.card-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+.card-cnav{display:flex;gap:8px;align-items:center}
+.card-cnav button{padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-size:12px;font-weight:500;color:var(--ink2)}
+.card-cnav button:hover{border-color:var(--accent);color:var(--accent)}
+.card-cnav button:disabled{opacity:.4;cursor:not-allowed}
+.card-pos{font-size:12px;color:var(--ink3)}
+.flashcard{width:100%;max-width:380px;min-height:200px;perspective:800px;cursor:pointer}
+.card-inner{width:100%;min-height:200px;position:relative;transform-style:preserve-3d;transition:transform .4s cubic-bezier(.4,0,.2,1)}
+.flashcard.flipped .card-inner{transform:rotateY(180deg)}
+.cface{position:absolute;inset:0;background:var(--surface);border:2px solid var(--border);border-radius:16px;padding:24px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;min-height:200px}
+.cface.back{transform:rotateY(180deg);background:var(--accent-l);border-color:var(--accent)}
+.chint{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.cword{font-size:26px;font-weight:800;margin-bottom:6px}
+.ctr{font-size:13px;color:var(--purple);font-style:italic;margin-bottom:2px}
+.ctrru{font-size:12px;color:var(--purple)}
+.cru{font-size:20px;font-weight:700;color:var(--accent);margin-bottom:10px}
+.cex{font-size:13px;font-style:italic;color:var(--ink2);margin-bottom:3px}
+.cexru{font-size:12px;color:var(--ink3);margin-bottom:12px}
+.card-acts{display:flex;gap:8px;margin-top:6px}
+.cact{padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600}
+.cact.again{background:var(--orange-l);color:var(--orange)}
+.cact.good{background:var(--green-l);color:var(--green)}
+.card-sound{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:13px;color:var(--ink2);margin-top:6px}
+
+/* VOCAB TEST */
+.vtest-wrap{display:flex;flex-direction:column;gap:16px}
+.vtest-q{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:18px}
+.vtest-q .qnum{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.vtest-q .qru{font-size:18px;font-weight:700;margin-bottom:4px}
+.vtest-q .qhint{font-size:12px;color:var(--ink3);margin-bottom:12px}
+.vtest-input{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:15px;color:var(--ink);background:var(--bg);transition:border-color .15s}
+.vtest-input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.vtest-input.correct{border-color:var(--green);background:var(--green-l)}
+.vtest-input.wrong{border-color:var(--red);background:var(--red-l)}
+.vtest-feedback{font-size:13px;margin-top:6px;display:none}
+.vtest-feedback.show{display:block}
+.vtest-feedback.ok{color:var(--green)}
+.vtest-feedback.err{color:var(--red)}
+.check-btn{padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;margin-top:4px}
+.check-btn:hover{background:#1D45C4}
+.vtest-score{text-align:center;padding:20px;background:var(--surface);border-radius:var(--r);border:1.5px solid var(--border)}
+.vtest-score .score-num{font-size:48px;font-weight:800;color:var(--accent)}
+.vtest-score .score-lbl{font-size:14px;color:var(--ink2);margin-top:4px}
+.retry-btn{margin-top:12px;padding:10px 20px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-weight:600;color:var(--ink2)}
+
+/* TEXT */
+.rtext{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px;line-height:1.85}
+.rtext p{font-size:14px;color:var(--ink);margin-bottom:5px}
+.rtext p:last-child{margin-bottom:0}
+.gloss-wrap{margin-bottom:18px}
+.gloss-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:8px}
+.gloss-items{display:flex;flex-wrap:wrap;gap:6px}
+.gi{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px}
+.gi strong{font-weight:700;color:var(--ink)}
+.gi span{color:var(--ink3)}
+.qs-list{display:flex;flex-direction:column;gap:14px}
+.qi{}
+.qi-text{font-size:13px;font-weight:600;margin-bottom:7px}
+.qi-text em{color:var(--accent);font-style:normal;margin-right:5px}
+.ans-ta{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--ink);background:var(--surface);resize:none;min-height:60px;transition:border-color .15s}
+.ans-ta:focus{outline:none;border-color:var(--accent)}
+
+/* AI CHECK */
+.ai-check-btn{display:flex;align-items:center;gap:6px;padding:9px 16px;background:var(--purple-l);border:1.5px solid var(--purple);border-radius:8px;font-size:13px;font-weight:600;color:var(--purple);margin-top:10px;transition:all .15s}
+.ai-check-btn:hover{background:var(--purple);color:#fff}
+.ai-check-btn:disabled{opacity:.5;cursor:not-allowed}
+.ai-result{margin-top:10px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:14px;font-size:13px;line-height:1.7;color:var(--ink);display:none}
+.ai-result.show{display:block}
+.ai-result .ai-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--purple);margin-bottom:8px}
+.ai-result .ok{color:var(--green)}
+.ai-result .err{color:var(--red)}
+.ai-result .fix{background:var(--green-l);border-radius:6px;padding:6px 10px;margin-top:6px;font-style:italic}
+.ai-loading{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink3);padding:10px 0}
+.ai-dots span{display:inline-block;width:6px;height:6px;background:var(--purple);border-radius:50%;margin:0 2px;animation:dot .8s infinite alternate}
+.ai-dots span:nth-child(2){animation-delay:.2s}
+.ai-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dot{from{opacity:.3;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+
+/* VIDEO */
+.video-box{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:16px;display:flex;align-items:center;gap:14px}
+.video-thumb{width:80px;height:56px;background:var(--ink);border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px}
+.video-info .vtitle{font-size:14px;font-weight:700;margin-bottom:3px}
+.video-info .vchan{font-size:12px;color:var(--ink3);margin-bottom:8px}
+.video-link{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--red);color:#fff;border-radius:8px;font-size:13px;font-weight:600;border:none;text-decoration:none}
+.video-task{background:var(--orange-l);border:1.5px solid var(--orange);border-radius:var(--r);padding:14px;margin-bottom:16px;font-size:13px;line-height:1.7;white-space:pre-line;color:var(--ink)}
+.vfield{margin-bottom:14px}
+.vfield .fl{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:6px}
+
+/* GRAMMAR */
+.grules{display:flex;flex-direction:column;gap:14px}
+.grule{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.grule-hdr{padding:12px 16px;font-weight:700;font-size:14px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.grule-chev{font-size:16px;transition:transform .25s}
+.grule-body{display:none;padding:14px 16px;border-top:1px solid var(--border)}
+.grule-body.open{display:block}
+.gpoints{display:flex;flex-direction:column;gap:12px}
+.gpt-h{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.gpt-t{font-size:13px;line-height:1.75;color:var(--ink);white-space:pre-line}
+.gram-quiz{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.gram-quiz-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:10px}
+.gq-item{margin-bottom:12px}
+.gq-q{font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)}
+.gq-input{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--ink);background:var(--bg);transition:border-color .15s}
+.gq-input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.gq-input.correct{border-color:var(--green);background:var(--green-l)}
+.gq-input.wrong{border-color:var(--red);background:var(--red-l)}
+.gq-fb{font-size:12px;margin-top:4px;display:none}
+.gq-fb.show{display:block}
+
+/* PATTERNS */
+.plist{display:flex;flex-direction:column;gap:14px}
+.pitem{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.pschema{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:6px}
+.pex{font-size:13px;font-style:italic;margin-bottom:2px}
+.pexru{font-size:12px;color:var(--ink3);margin-bottom:10px}
+.pinputs{display:flex;flex-direction:column;gap:6px}
+.pinput{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:8px 12px;font-size:13px;color:var(--ink);background:var(--bg);transition:border-color .15s}
+.pinput:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.pinput::placeholder{color:var(--ink3)}
+
+/* SPEAKING */
+.speak-task{background:var(--green-l);border:1.5px solid var(--green);border-radius:var(--r);padding:16px;font-size:13px;line-height:1.7;white-space:pre-line;margin-bottom:18px}
+.notes-ta{width:100%;min-height:90px;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--ink);resize:vertical;background:var(--surface)}
+.notes-ta:focus{outline:none;border-color:var(--accent)}
+
+/* BUTTONS */
+.bfooter{display:flex;gap:8px;margin-top:20px}
+.bfooter button{flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);font-size:13px;font-weight:600;color:var(--ink2);transition:all .15s}
+.bfooter .nextb{background:var(--accent);border-color:var(--accent);color:#fff}
+.bfooter .nextb:hover{background:#1D45C4}
+.done-btn{width:100%;padding:15px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;margin-top:18px}
+.done-btn.done{background:var(--green)}
+.fl{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:6px}
+.info{background:var(--accent-l);border:1.5px solid var(--accent);border-radius:var(--r);padding:12px 14px;font-size:13px;color:var(--ink);line-height:1.6;margin-bottom:14px}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;z-index:999;transition:transform .3s;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+
+/* ── MOBILE FIRST ── */
+@media(max-width:520px){
+  .hero{padding:24px 14px 20px}
+  .hero h1{font-size:26px}
+  .stats{gap:8px}
+  .stat{padding:8px 12px}
+  .stat .n{font-size:22px}
+  .grid{padding:10px;gap:8px;grid-template-columns:1fr}
+  .lcard{padding:14px}
+  .lnav{padding:8px 10px}
+  .lnav-title{font-size:13px}
+  .btabs{padding:8px 10px;gap:3px}
+  .btab{padding:5px 10px;font-size:11px}
+  .lcontent{padding:10px 10px 80px}
+  .bhead .btitle{font-size:17px}
+  .bfooter button{font-size:12px;padding:10px 8px}
+  .vcontrols{gap:5px}
+  .vbtn{padding:6px 10px;font-size:11px}
+  .vtable{font-size:11px}
+  .vtable th,.vtable td{padding:6px 6px}
+  .cword{font-size:22px}
+  .ctr{font-size:12px}
+  .cru{font-size:18px}
+  .cex,.cexru{font-size:11px}
+  .grule-hdr{font-size:13px;padding:10px 12px}
+  .gpt-t{font-size:12px}
+  .video-box{flex-direction:column;gap:10px}
+  .video-thumb{width:100%;height:44px}
+  .ai-check-btn{font-size:12px;padding:7px 12px}
+  .done-btn{font-size:14px;padding:13px}
+}
+
+/* ── USER SELECT ── */
+.user-screen{position:fixed;inset:0;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:24px}
+.user-screen h2{color:#fff;font-size:22px;font-weight:800;margin-bottom:6px;text-align:center}
+.user-screen p{color:#999;font-size:13px;margin-bottom:28px;text-align:center}
+.user-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px}
+.user-btn{padding:16px;border-radius:12px;border:none;font-size:16px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px}
+.user-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.user-btn.u1{background:var(--accent);color:#fff}
+.user-btn.u2{background:#6234A8;color:#fff}
+.user-badge{position:fixed;bottom:16px;right:16px;background:var(--accent);color:#fff;border:none;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;z-index:99;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.user-badge.u2{background:#6234A8}
+
+/* ── FINAL TEST ── */
+.ftest-wrap{display:flex;flex-direction:column;gap:14px}
+.ftest-section{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden}
+.ftest-section-hdr{padding:10px 14px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff}
+.ftest-section-body{padding:14px}
+.ftest-q{margin-bottom:14px}
+.ftest-q:last-child{margin-bottom:0}
+.ftest-q-text{font-size:14px;font-weight:600;margin-bottom:7px;color:var(--ink)}
+.ftest-input{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;color:var(--ink);background:var(--bg);transition:border-color .15s}
+.ftest-input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.ftest-input.ok{border-color:var(--green);background:var(--green-l)}
+.ftest-input.err{border-color:var(--red);background:var(--red-l)}
+.ftest-fb{font-size:12px;margin-top:4px;display:none;line-height:1.5}
+.ftest-fb.show{display:block}
+.ftest-fb.ok{color:var(--green)}
+.ftest-fb.err{color:var(--red)}
+.ftest-submit{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;margin-top:4px}
+.ftest-result{text-align:center;padding:24px 16px;background:var(--surface);border-radius:var(--r);border:1.5px solid var(--border)}
+.ftest-score{font-size:52px;font-weight:800;color:var(--accent)}
+.ftest-score-lbl{font-size:14px;color:var(--ink2);margin-bottom:8px}
+.ftest-msg{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:16px}
+.ftest-retry{padding:10px 20px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);font-size:13px;font-weight:600;color:var(--ink2);margin-right:8px}
+.ftest-done{padding:10px 20px;border:none;border-radius:8px;background:var(--green);color:#fff;font-size:13px;font-weight:700}
+
+@media(max-width:480px){
+  .lcontent{padding:10px;padding-bottom:80px}
+  .vtable{font-size:11px}
+  .vtable th,.vtable td{padding:6px 7px}
+  .btitle{font-size:17px}
+  .cword{font-size:22px}
+  .video-box{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<!-- USER SELECT -->
+<div class="user-screen" id="user-screen">
+  <h2>English Together</h2>
+  <p>Выбери кто ты — прогресс сохраняется отдельно</p>
+  <div class="user-btns">
+    <button class="user-btn u1" onclick="selectUser('assel','Асель','👩‍💼')">
+      <span style="font-size:24px">👩‍💼</span>
+      <div><div>Асель</div><div style="font-size:11px;opacity:.8;font-weight:400">Участник 1</div></div>
+    </button>
+    <button class="user-btn u2" onclick="selectUser('partner','Акрам','👨‍💼')">
+      <span style="font-size:24px">🙋</span>
+      <div><div>Акрам</div><div style="font-size:11px;opacity:.8;font-weight:400">Второй участник</div></div>
+    </button>
+  </div>
+</div>
+<button class="user-badge" id="user-badge" style="display:none" onclick="switchUser()">👩‍💼 Асель</button>
+
+<div class="screen active" id="s-home">
+  <div class="hero">
+    <h1>English <em>Together</em></h1>
+    <p>A2+ → B1 · 12 занятий · прогресс сохраняется</p>
+    <div class="stats">
+      <div class="stat"><div class="n" id="st-done">0</div><div class="l">уроков</div></div>
+      <div class="stat"><div class="n" id="st-words">0</div><div class="l">слов</div></div>
+      <div class="stat"><div class="n" id="st-streak">0</div><div class="l">дней</div></div>
+    </div>
+  </div>
+  <div class="grid" id="home-grid"></div>
+</div>
+
+<!-- LESSON -->
+<div class="screen" id="s-lesson">
+  <div class="lnav">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="lnav-title" id="lnav-title"></div>
+    <div class="lnav-prog" id="lnav-prog">0/6</div>
+  </div>
+  <div class="btabs" id="btabs"></div>
+  <div class="lcontent" id="lcontent"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════ ДАННЫЕ ═══════════
+
+const VIDEOS = {
+  1:{id:"iDdFTFzVhCE",title:"Airport English — check-in, security, boarding",ch:"Learn English with TV Series",dur:"4 мин"},
+  2:{id:"x4kzLKS_ZzA",title:"Ordering food at a restaurant in English",ch:"English with Lucy",dur:"5 мин"},
+  3:{id:"7LI_D6VZXNI",title:"Talking about your daily routine",ch:"BBC Learning English",dur:"3 мин"},
+  4:{id:"2YXemRgKwlk",title:"Hotel check-in, requests, complaints",ch:"English with Lucy",dur:"5 мин"},
+  5:{id:"iJ0Z4vEKSyA",title:"How to talk about movies and TV shows",ch:"BBC Learning English",dur:"4 мин"},
+  6:{id:"hMxvEtS_vYg",title:"Health and fitness vocabulary",ch:"Learn English with TV Series",dur:"4 мин"},
+  7:{id:"n1dOoUPzX3g",title:"Talking about future plans and dreams",ch:"English with Lucy",dur:"5 мин"},
+  8:{id:"pXhKoIi5xBo",title:"Shopping English — buying clothes, bargaining",ch:"BBC Learning English",dur:"4 мин"},
+  9:{id:"jVOqMkMEoQ4",title:"Describing places and nature in English",ch:"English with Lucy",dur:"5 мин"},
+  10:{id:"HCDJNBPWrdM",title:"Business English — meetings and emails",ch:"BBC Learning English",dur:"5 мин"},
+  11:{id:"6yK0NUiOEFE",title:"Technology and AI vocabulary B1",ch:"BBC Learning English",dur:"4 мин"},
+  12:{id:"dW72ASCP5L0",title:"How to talk about learning English",ch:"English with Lucy",dur:"4 мин"},
+};
+
+const LESSONS = [
+{id:1,title:"В аэропорту и в такси",level:"A2",theme:"Путешествия",
+vocab:[
+  {en:"departure",tr:"[dɪˈpɑːtʃə]",trRu:"ди-ПА-чэ",ru:"вылет, отправление",ex:"The departure is at 6 AM.",exRu:"Вылет в 6 утра."},
+  {en:"arrival",tr:"[əˈraɪvəl]",trRu:"э-РАЙ-вэл",ru:"прилёт, прибытие",ex:"Check the arrival board.",exRu:"Проверь табло прибытия."},
+  {en:"gate",tr:"[ɡeɪt]",trRu:"гейт",ru:"выход на посадку",ex:"Your gate is B12.",exRu:"Ваш выход — B12."},
+  {en:"boarding pass",tr:"[ˈbɔːdɪŋ pɑːs]",trRu:"БО-динг пас",ru:"посадочный талон",ex:"Show your boarding pass.",exRu:"Покажите посадочный талон."},
+  {en:"check-in",tr:"[ˈtʃek ɪn]",trRu:"ЧЕК ин",ru:"регистрация на рейс",ex:"Check-in closes in 30 minutes.",exRu:"Регистрация закрывается через 30 мин."},
+  {en:"carry-on luggage",tr:"[ˈkæri ɒn ˈlʌɡɪdʒ]",trRu:"КЭ-ри он ЛА-гидж",ru:"ручная кладь",ex:"Carry-on must be under 10 kg.",exRu:"Ручная кладь — до 10 кг."},
+  {en:"customs",tr:"[ˈkʌstəmz]",trRu:"КАС-тэмз",ru:"таможня",ex:"Nothing to declare at customs.",exRu:"На таможне нечего декларировать."},
+  {en:"delay",tr:"[dɪˈleɪ]",trRu:"ди-ЛЕЙ",ru:"задержка рейса",ex:"There is a two-hour delay.",exRu:"Есть двухчасовая задержка."},
+  {en:"fare",tr:"[feə]",trRu:"фэа",ru:"стоимость проезда",ex:"What is the fare to the city?",exRu:"Сколько стоит проезд до города?"},
+  {en:"destination",tr:"[ˌdestɪˈneɪʃən]",trRu:"дэ-сти-НЕЙ-шн",ru:"пункт назначения",ex:"Dubai is my final destination.",exRu:"Дубай — мой конечный пункт."},
+  {en:"aisle seat",tr:"[aɪl siːt]",trRu:"айл сит",ru:"место у прохода",ex:"I prefer an aisle seat.",exRu:"Я предпочитаю место у прохода."},
+  {en:"window seat",tr:"[ˈwɪndəʊ siːt]",trRu:"УИН-дэу сит",ru:"место у окна",ex:"Could I have a window seat?",exRu:"Можно мне место у окна?"},
+  {en:"terminal",tr:"[ˈtɜːmɪnəl]",trRu:"ТЭ-ми-нэл",ru:"терминал аэропорта",ex:"We land at Terminal 1.",exRu:"Мы садимся в Терминале 1."},
+  {en:"passport control",tr:"[ˈpɑːspɔːt kənˈtrəʊl]",trRu:"ПАС-пот кэн-ТРОЙЛ",ru:"паспортный контроль",ex:"Passport control took 20 minutes.",exRu:"Паспортный контроль — 20 минут."},
+  {en:"connecting flight",tr:"[kəˈnektɪŋ flaɪt]",trRu:"кэ-НЕК-тинг флайт",ru:"стыковочный рейс",ex:"I have a connecting flight in Dubai.",exRu:"У меня стыковка в Дубае."},
+  {en:"overhead bin",tr:"[ˌəʊvəˈhed bɪn]",trRu:"ОУ-вэ-хэд бин",ru:"верхняя полка (самолёт)",ex:"Put it in the overhead bin.",exRu:"Положи в верхнюю полку."},
+  {en:"turbulence",tr:"[ˈtɜːbjʊləns]",trRu:"ТЭ-бью-лэнс",ru:"турбулентность",ex:"Fasten belts due to turbulence.",exRu:"Пристегнитесь из-за турбулентности."},
+  {en:"drop off",tr:"[drɒp ɒf]",trRu:"дроп оф",ru:"высадить, довезти",ex:"Please drop me off at the hotel.",exRu:"Высадите меня у отеля."},
+  {en:"fare meter",tr:"[feə ˈmiːtə]",trRu:"фэа МИ-тэ",ru:"счётчик в такси",ex:"Please watch the fare meter.",exRu:"Следите за счётчиком."},
+  {en:"traffic jam",tr:"[ˈtræfɪk dʒæm]",trRu:"ТРЭФ-ик джэм",ru:"пробка",ex:"Sorry, there is a traffic jam.",exRu:"Извините, впереди пробка."},
+],
+text:["At 6 AM, Maria arrived at the airport with only her carry-on luggage.","She went straight to the check-in desk, then through passport control.","Her gate was B12, but there was a two-hour delay — the flight was pushed back.","She used the time to grab coffee and watch the departure board carefully.","Finally, the boarding pass was scanned and she found her window seat.","The connecting flight to Dubai was on time. No turbulence — a perfect journey."],
+glossary:[{en:"straight",ru:"прямо, сразу"},{en:"pushed back",ru:"перенесён на позднее время"},{en:"grab coffee",ru:"выпить кофе (неформально)"},{en:"was scanned",ru:"был просканирован"},{en:"on time",ru:"вовремя"},{en:"journey",ru:"поездка, путешествие"}],
+questions:["Почему у Марии была только ручная кладь?","Что случилось с её рейсом и как она провела время ожидания?","Какое место у неё было в самолёте?","Найди в тексте слово «delay» — что оно означает в контексте?"],
+videoTask:"Посмотри видео ниже (4 минуты — аэропорт и регистрация).\n\nШаг 1: Смотри БЕЗ субтитров. Запиши слова которые поняла.\nШаг 2: Смотри С субтитрами. Отметь слова из нашего словаря которые услышала.\nШаг 3: Запиши 2-3 фразы которые хочешь запомнить.",
+grammar:[
+  {title:"Present Simple — настоящее простое",color:"#2E5BE0",points:[
+    {h:"ЗАЧЕМ",t:"Говорить о привычках, фактах и расписании — то что делаешь всегда или обычно."},
+    {h:"КОГДА",t:"Маркеры: every day, always, usually, often, sometimes, never, on Mondays, at 6 AM"},
+    {h:"ОКОНЧАНИЕ",t:"Только для he/she/it → глагол + -S или -ES\nwork→works | go→goes | do→does | fly→flies | have→has"},
+    {h:"(+)",t:"I work every day. → Я работаю каждый день.\nShe works in an office. → Она работает в офисе."},
+    {h:"(-)",t:"I don't work on weekends. → Я не работаю по выходным.\nShe doesn't work remotely. → Она не работает удалённо.\n⚠️ После don't/doesn't — глагол без -S!"},
+    {h:"(?)",t:"Do you work from home? → Ты работаешь из дома?\nDoes she attend meetings? → Она ходит на встречи?\nОтветы: Yes, I do. / No, I don't. | Yes, she does. / No, she doesn't."},
+    {h:"ГЛАГОЛ BE",t:"ЗАЧЕМ: описать состояние, качество, кем являешься.\nam = с I | is = с he/she/it | are = с you/we/they\n\nI am a risk manager. → Я риск-менеджер.\nShe is very efficient. → Она очень эффективна.\n\n(-) I'm not late. → Я не опаздываю.\n(?) Are you ready? — Yes, I am. / No, I'm not."},
+  ],
+  quiz:[
+    {q:"Как правильно сказать «Она работает каждый день»?",a:"she works every day",hint:"he/she/it → глагол + S"},
+    {q:"Как образовать отрицание: «Я не летаю по делам»?",a:"i don't fly for work",hint:"I + don't + глагол без -S"},
+    {q:"Как спросить «Он ходит на встречи?»",a:"does he attend meetings",hint:"Does + he/she/it + глагол без -S"},
+  ]},
+  {title:"Вежливые просьбы — CAN / COULD / I'D LIKE",color:"#6234A8",points:[
+    {h:"CAN",t:"С другом, нейтрально:\nCan you help me? → Можешь помочь мне?"},
+    {h:"COULD",t:"С незнакомым / в сфере услуг:\nCould you take me to this address? → Не могли бы вы отвезти меня по этому адресу?\nCould I have a window seat? → Можно мне место у окна?"},
+    {h:"I'D LIKE",t:"Полная: I would like a window seat.\nСокращ.: I'd like a window seat. → Мне место у окна, пожалуйста.\nПолная: I would like to check in.\nСокращ.: I'd like to check in. → Я хочу зарегистрироваться."},
+    {h:"ПРАВИЛО",t:"С таксистом, кассиром, сотрудником → COULD или I'D LIKE.\n❌ Give me a ticket. / I want a seat.\n✅ Could I have a ticket? / I'd like a seat, please."},
+  ],
+  quiz:[
+    {q:"Как вежливо попросить место у окна у сотрудника аэропорта?",a:"could i have a window seat",hint:"Could I have + что хочешь"},
+    {q:"Как сказать «Я хочу зарегистрироваться» (вежливо, сокращённо)?",a:"i'd like to check in",hint:"I'd like to + глагол"},
+  ]},
+  {title:"Специальные вопросы — WHERE / HOW / WHAT TIME",color:"#1A7A6E",points:[
+    {h:"СХЕМА",t:"Вопр. слово + вспомогательный глагол + подлежащее + глагол"},
+    {h:"WHERE",t:"Where is gate 12? → Где выход 12?\nWhere are the toilets? → Где туалеты?"},
+    {h:"HOW LONG",t:"How long does the flight take? → Сколько летит самолёт?\nIt takes about 3 hours. → Это занимает около 3 часов."},
+    {h:"HOW MUCH",t:"How much is the fare? → Сколько стоит проезд?\nIt costs 5,000 tenge. → Это стоит 5000 тенге."},
+    {h:"WHAT TIME",t:"What time does it depart? → В котором часу отправляется?\nAt 10:30 AM. → В 10:30 утра."},
+    {h:"⚠️",t:"Where the gate is? ❌\nWhere is the gate? ✅"},
+  ],
+  quiz:[
+    {q:"Как спросить «Сколько лететь до Дубая?»",a:"how long does the flight take",hint:"How long does + ... + take?"},
+    {q:"Как спросить «Где выход на посадку?»",a:"where is the gate",hint:"Where is + что ищешь"},
+  ]},
+],
+patterns:[
+  {schema:"Could you + глагол + ...?",ex:"Could you take me to this address?",exRu:"Не могли бы вы отвезти меня по этому адресу?"},
+  {schema:"I'd like + существительное",ex:"I'd like an aisle seat, please.",exRu:"Мне место у прохода, пожалуйста."},
+  {schema:"Where is / are + ...?",ex:"Where is the departure gate?",exRu:"Где выход на посадку?"},
+  {schema:"How long does + ... + take?",ex:"How long does the flight take?",exRu:"Сколько летит самолёт?"},
+  {schema:"Is there + ... + here?",ex:"Is there a pharmacy nearby?",exRu:"Здесь есть аптека рядом?"},
+],
+speaking:"Сценарий: один — пассажир, второй — сотрудник аэропорта.\n\nПассажир: зарегистрироваться → спросить про выход → уточнить задержку → попросить место у окна.\nСотрудник: отвечать вежливо, предлагать варианты.\n\nИспользуйте: минимум 8 слов из словаря + схемы Could / I'd like.\nПотом поменяйтесь ролями."},
+
+{id:2,title:"В кафе и ресторане",level:"A2",theme:"Путешествия / Жизнь",
+vocab:[
+  {en:"to recommend",tr:"[ˌrekəˈmend]",trRu:"рэ-кэ-МЕНД",ru:"рекомендовать",ex:"Can you recommend a dish?",exRu:"Можете порекомендовать блюдо?"},
+  {en:"menu",tr:"[ˈmenjuː]",trRu:"МЕ-нью",ru:"меню",ex:"Could I see the menu?",exRu:"Можно мне меню?"},
+  {en:"starter",tr:"[ˈstɑːtə]",trRu:"СТАР-тэ",ru:"закуска",ex:"I'll have a starter first.",exRu:"Я начну с закуски."},
+  {en:"main course",tr:"[meɪn kɔːs]",trRu:"мейн кос",ru:"основное блюдо",ex:"For the main course — salmon.",exRu:"На основное — лосось."},
+  {en:"dessert",tr:"[dɪˈzɜːt]",trRu:"ди-ЗЭТ",ru:"десерт",ex:"Do you have any desserts?",exRu:"У вас есть десерты?"},
+  {en:"bill",tr:"[bɪl]",trRu:"бил",ru:"счёт",ex:"Could we have the bill?",exRu:"Можно нам счёт?"},
+  {en:"allergic to",tr:"[əˈlɜːdʒɪk tuː]",trRu:"э-ЛЭ-джик ту",ru:"быть аллергиком на",ex:"I am allergic to nuts.",exRu:"У меня аллергия на орехи."},
+  {en:"gluten-free",tr:"[ˈɡluːtən friː]",trRu:"ГЛУ-тэн фри",ru:"без глютена",ex:"Is this dish gluten-free?",exRu:"Это блюдо без глютена?"},
+  {en:"medium",tr:"[ˈmiːdiəm]",trRu:"МИ-диэм",ru:"средняя прожарка",ex:"Steak medium, please.",exRu:"Стейк средней прожарки."},
+  {en:"sparkling water",tr:"[ˈspɑːklɪŋ ˈwɔːtə]",trRu:"СПАР-клинг УО-тэ",ru:"газированная вода",ex:"Sparkling or still?",exRu:"Газированная или нет?"},
+  {en:"to split the bill",tr:"[splɪt ðə bɪl]",trRu:"сплит зэ бил",ru:"разделить счёт",ex:"Can we split the bill?",exRu:"Можно нам разделить счёт?"},
+  {en:"specials",tr:"[ˈspeʃəlz]",trRu:"СПЭШ-элз",ru:"блюда дня",ex:"What are today's specials?",exRu:"Какие сегодня блюда дня?"},
+  {en:"service charge",tr:"[ˈsɜːvɪs tʃɑːdʒ]",trRu:"СЭ-вис чадж",ru:"сервисный сбор",ex:"Is service charge included?",exRu:"Сервисный сбор включён?"},
+  {en:"vegetarian",tr:"[ˌvedʒɪˈteəriən]",trRu:"вэ-джи-ТЭ-риэн",ru:"вегетарианский",ex:"Any vegetarian options?",exRu:"Есть вегетарианские блюда?"},
+  {en:"portion",tr:"[ˈpɔːʃən]",trRu:"ПО-шн",ru:"порция",ex:"The portions are huge here.",exRu:"Здесь огромные порции."},
+  {en:"cosy",tr:"[ˈkəʊzi]",trRu:"КОУ-зи",ru:"уютный",ex:"This café is really cosy.",exRu:"Это кафе очень уютное."},
+  {en:"overpriced",tr:"[ˌəʊvəˈpraɪst]",trRu:"оу-вэ-ПРАЙСТ",ru:"переоценённый",ex:"The restaurant was overpriced.",exRu:"Ресторан был переоценён."},
+  {en:"worth it",tr:"[wɜːθ ɪt]",trRu:"вэс ит",ru:"стоит того",ex:"It was totally worth it.",exRu:"Это полностью того стоило."},
+  {en:"atmosphere",tr:"[ˈætməsfɪə]",trRu:"ЭТ-мэс-фиэ",ru:"атмосфера",ex:"The atmosphere was amazing.",exRu:"Атмосфера была потрясающей."},
+  {en:"well-done",tr:"[wel dʌn]",trRu:"вэл дан",ru:"хорошая прожарка",ex:"I'd like my steak well-done.",exRu:"Мне стейк хорошей прожарки."},
+],
+text:["Last Saturday, Anna and her colleague visited a new café in the city centre.","The atmosphere was cosy and the menu looked impressive.","Anna is vegetarian, so she asked the waiter about vegetarian options.","She also mentioned she is allergic to nuts — the waiter was very helpful.","For the main course she ordered pasta. Her colleague had a steak, medium.","The portions were huge and the food was delicious — totally worth it.","They decided to split the bill. Anna found the café a bit overpriced,","but she thought the atmosphere was so cosy that she would definitely come back."],
+glossary:[{en:"colleague",ru:"коллега"},{en:"city centre",ru:"центр города"},{en:"impressive",ru:"впечатляющий"},{en:"mentioned",ru:"упомянула"},{en:"helpful",ru:"отзывчивый"},{en:"delicious",ru:"вкусный"},{en:"definitely",ru:"определённо"}],
+questions:["Почему Анна спрашивала про вегетарианские блюда?","Что важно было уточнить из-за аллергии и как отреагировал официант?","Как они оплатили счёт?","Анна осталась довольна? Найди слова которые показывают её отношение."],
+videoTask:"Посмотри видео ниже (заказ еды в ресторане).\n\nШаг 1: Смотри БЕЗ субтитров — что заказали герои?\nШаг 2: С субтитрами — отметь слова из нашего словаря.\nШаг 3: Разыграйте этот же диалог вдвоём по памяти.",
+grammar:[
+  {title:"Past Simple — прошедшее простое время",color:"#C44A1A",points:[
+    {h:"ЗАЧЕМ",t:"Рассказывать о событиях которые уже завершились в прошлом."},
+    {h:"КОГДА",t:"Маркеры: yesterday, last week/month/year, ago, in 2022, last Saturday"},
+    {h:"ОКОНЧАНИЕ",t:"Правильные глаголы + -ED:\nvisit→visited | order→ordered | enjoy→enjoyed | stop→stopped"},
+    {h:"(+)",t:"I ordered the pasta. → Я заказала пасту.\nShe enjoyed the meal. → Она насладилась едой."},
+    {h:"(-)",t:"I didn't order dessert. → Я не заказывала десерт.\n⚠️ После didn't — глагол без -ED! (didn't ordered ❌ → didn't order ✅)"},
+    {h:"(?)",t:"Did you enjoy it? → Вам понравилось?\nWhat did you order? → Что ты заказала?\nОтветы: Yes, I did. / No, I didn't."},
+    {h:"ГЛАГОЛ BE",t:"ЗАЧЕМ: описать каким ЧТО-ТО БЫЛО — атмосфера, еда, место.\nI/he/she/it → WAS | you/we/they → WERE\n\nThe café was cosy. → Кафе было уютным.\nThe portions were huge. → Порции были огромными.\n\n(-) The café wasn't cheap. → Кафе не было дешёвым.\n(?) Was the food good? — Yes, it was. / No, it wasn't.\n⚠️ Для BE не используем did — только was/were!"},
+  ],
+  quiz:[
+    {q:"Как правильно: «Мы не делили счёт» (Past Simple)?",a:"we didn't split the bill",hint:"didn't + глагол без -ED"},
+    {q:"Как сказать «Еда была вкусной»? (глагол BE)",a:"the food was delicious",hint:"was — для одного предмета в прошлом"},
+    {q:"Как спросить «Порции были большими?»",a:"were the portions big",hint:"were — для множественного числа"},
+  ]},
+  {title:"Заказ еды — I'LL HAVE / I'D LIKE / COULD I HAVE",color:"#1A7A6E",points:[
+    {h:"I'LL HAVE",t:"Самый частый способ:\nПолная: I will have the pasta.\nСокращ.: I'll have the pasta. → Мне пасту, пожалуйста."},
+    {h:"I'D LIKE",t:"Чуть более формально:\nПолная: I would like the salmon.\nСокращ.: I'd like the salmon. → Я бы хотела лосось."},
+    {h:"COULD I HAVE",t:"Очень вежливо:\nCould I have the menu? → Можно мне меню?\nCould we have the bill? → Можно нам счёт?"},
+    {h:"УТОЧНЕНИЯ",t:"Does it contain nuts? → Там есть орехи?\nIs it spicy? → Оно острое?\nIs service included? → Сервисный сбор включён?"},
+  ],
+  quiz:[
+    {q:"Как заказать пасту (самый частый способ, сокращённо)?",a:"i'll have the pasta",hint:"I'll have + блюдо"},
+    {q:"Как вежливо попросить счёт?",a:"could we have the bill",hint:"Could we have + что хочешь"},
+  ]},
+  {title:"Выражаем мнение — I THOUGHT / I FOUND / IT WAS",color:"#1A8A4A",points:[
+    {h:"I THOUGHT",t:"I thought the pasta was amazing. → Я думала, паста была потрясающей.\nI thought the prices were too high. → Я думала, цены были слишком высокими."},
+    {h:"I FOUND IT",t:"I found it a bit overpriced. → Мне показалось немного дорого.\nI found the atmosphere very cosy. → Атмосфера мне показалась уютной."},
+    {h:"IT WAS",t:"It was delicious! → Было вкусно!\nIt was totally worth it. → Это стоило того."},
+    {h:"ПРИЛАГАТЕЛЬНЫЕ",t:"delicious — вкусный | overpriced — переоценённый\nworth it — стоит того | cosy — уютный\ndisappointing — разочаровывающий | impressive — впечатляющий"},
+  ],
+  quiz:[
+    {q:"Скажи «Я думала, атмосфера была потрясающей»",a:"i thought the atmosphere was amazing",hint:"I thought + что + was + каким"},
+    {q:"Как сказать «Мне показалось немного дорого»?",a:"i found it a bit overpriced",hint:"I found it + прилагательное"},
+  ]},
+],
+patterns:[
+  {schema:"I'll have + блюдо, please.",ex:"I'll have the vegetarian pasta, please.",exRu:"Мне вегетарианскую пасту, пожалуйста."},
+  {schema:"Could I have + существительное?",ex:"Could I have still water and the bill?",exRu:"Можно негазированную воду и счёт?"},
+  {schema:"Does it contain + ингредиент?",ex:"Does it contain gluten or nuts?",exRu:"Там есть глютен или орехи?"},
+  {schema:"I thought it was + прилагательное.",ex:"I thought the atmosphere was really cosy.",exRu:"Я думала, атмосфера была очень уютной."},
+  {schema:"Was + место + прилагательное?",ex:"Was the service charge included?",exRu:"Сервисный сбор был включён?"},
+],
+speaking:"Сценарий: один — гость в ресторане, второй — официант.\n\nГость: изучает меню → уточняет состав (придумай аллергию) → заказывает 2 блюда → просит счёт.\nОфициант: приветствует → описывает блюда дня → реагирует на аллергию.\n\nИспользуйте: минимум 10 слов из словаря.\nПосле диалога: дайте отзыв о «ресторане» на английском."},
+
+...[3,4,5,6,7,8,9,10,11,12].map(id=>({
+  id,
+  title:["Мой рабочий день","В отеле и на экскурсии","Кино, сериалы и музыка","Здоровье и спорт","Планы и мечты","Деньги и покупки","Природа и путешествия","Переговоры и деловые письма","Новости и технологии","Итог: мой прогресс"][id-3],
+  level:["A2–B1","A2–B1","B1","B1","B1","B1","B1","B1","B1–B2","B1+"][id-3],
+  theme:["Жизнь / Карьера","Путешествия","Культура","Жизнь","Жизнь / Карьера","Жизнь","Путешествия","Карьера","Мир","Повторение"][id-3],
+  vocab:[],text:[],glossary:[],questions:[],videoTask:"",grammar:[],patterns:[],speaking:""
+}))
+];
+
+const BLOCK_DEFS = [
+  {id:'vocab',icon:'📖',label:'Словарь'},
+  {id:'text',icon:'📄',label:'Чтение'},
+  {id:'video',icon:'🎬',label:'Видео'},
+  {id:'grammar',icon:'⚙️',label:'Грамматика'},
+  {id:'patterns',icon:'✏️',label:'Предложения'},
+  {id:'speaking',icon:'🗣️',label:'Разговор'},
+];
+
+// ═══════════ STATE ═══════════
+let CUR = {lessonId:null, block:'vocab', cardIdx:0, cardFlipped:false, vocabMode:'table', testState:null, ftestState:null};
+let CURRENT_USER = null; // {id,name,emoji}
+
+// ═══════════ USER SELECT ═══════════
+function selectUser(id,name,emoji){
+  CURRENT_USER={id,name,emoji};
+  localStorage.setItem('et_user', id);
+  document.getElementById('user-screen').style.display='none';
+  const badge=document.getElementById('user-badge');
+  badge.textContent=`${emoji} ${name}`;
+  badge.className=`user-badge${id==='partner'?' u2':''}`;
+  badge.style.display='block';
+  renderHome();
+}
+
+function switchUser(){
+  CURRENT_USER=null;
+  localStorage.removeItem('et_user');
+  document.getElementById('user-badge').style.display='none';
+  document.getElementById('user-screen').style.display='flex';
+}
+
+function initUser(){
+  const saved=localStorage.getItem('et_user');
+  if(saved==='assel') selectUser('assel','Асель','👩\u200d💼');
+  else if(saved==='partner') selectUser('partner','Акрам','👨‍💼');
+  else document.getElementById('user-screen').style.display='flex';
+}
+
+// ═══════════ STORAGE ═══════════
+// Shared: done lessons, blocks progress
+// Personal: words, answers, test results (per user)
+const P = {
+  key(){ return `et_${CURRENT_USER?.id||'anon'}`; },
+  sharedKey(){ return 'et_shared'; },
+  load(){ try{return JSON.parse(localStorage.getItem(this.key())||'{}')}catch{return{}} },
+  save(d){ localStorage.setItem(this.key(),JSON.stringify(d)); },
+  get(){ return this.load(); },
+  set(fn){ const d=this.load(); fn(d); this.save(d); },
+  shared(){ try{return JSON.parse(localStorage.getItem(this.sharedKey())||'{}')}catch{return{}} },
+  setShared(fn){ const d=this.shared(); fn(d); localStorage.setItem(this.sharedKey(),JSON.stringify(d)); },
+};
+
+function markWord(lid,idx,status){
+  P.set(d=>{
+    if(!d.words)d.words={};
+    const k=`${lid}_${idx}`;
+    d.words[k]= d.words[k]===status ? null : status;
+  });
+  updateVocabProgress(lid);
+  if(CUR.vocabMode==='table') renderVocabTable(getLes(lid));
+}
+
+function saveAns(lid,type,key,val){
+  P.set(d=>{ if(!d.ans)d.ans={}; if(!d.ans[lid])d.ans[lid]={}; d.ans[lid][`${type}_${key}`]=val; });
+}
+function getAns(lid,type,key){ return P.get().ans?.[lid]?.[`${type}_${key}`]||''; }
+
+function addMyVocab(lid,idx){
+  P.set(d=>{ if(!d.myv)d.myv=[]; const k=`${lid}_${idx}`; if(!d.myv.includes(k))d.myv.push(k); });
+  toast('Добавлено в личный словарь ✓');
+}
+
+function doneBlock(lid,bid){
+  // blocks are shared
+  P.setShared(d=>{ if(!d.blocks)d.blocks={}; if(!d.blocks[lid])d.blocks[lid]={}; d.blocks[lid][bid]=true; });
+  updateTabs(lid);
+}
+function isBlockDone(lid,bid){ return !!P.shared().blocks?.[lid]?.[bid]; }
+
+function isDone(lid){
+  // lesson done when BOTH users completed it
+  const s=P.shared();
+  return !!(s.done1?.[lid] && s.done2?.[lid]);
+}
+function isMyDone(lid){
+  const s=P.shared();
+  const key=CURRENT_USER?.id==='partner'?'done2':'done1';
+  return !!(s[key]?.[lid]);
+}
+
+function markDone(lid){
+  P.setShared(d=>{
+    const key=CURRENT_USER?.id==='partner'?'done2':'done1';
+    if(!d[key])d[key]={};
+    d[key][lid]=true;
+  });
+  P.set(d=>{
+    const today=new Date().toDateString();
+    if(d.lastDay!==today){d.streak=(d.streak||0)+1;d.lastDay=today;}
+  });
+}
+
+// ═══════════ HOME ═══════════
+function renderHome(){
+  const p=P.get();
+  const s=P.shared();
+  const myDoneCount=LESSONS.filter(l=>isMyDone(l.id)).length;
+  const bothDoneCount=LESSONS.filter(l=>isDone(l.id)).length;
+  document.getElementById('st-done').textContent=myDoneCount;
+  document.getElementById('st-words').textContent=Object.values(p.words||{}).filter(v=>v==='known').length;
+  document.getElementById('st-streak').textContent=p.streak||0;
+  const g=document.getElementById('home-grid');
+  g.innerHTML='';
+
+  // User progress summary
+  const u1done=LESSONS.filter(l=>s.done1?.[l.id]).length;
+  const u2done=LESSONS.filter(l=>s.done2?.[l.id]).length;
+  const sumDiv=document.createElement('div');
+  sumDiv.style.cssText='grid-column:1/-1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap';
+  sumDiv.innerHTML=`<div style="font-size:12px;color:var(--ink3);font-weight:600;text-transform:uppercase;letter-spacing:.08em;flex-shrink:0">Прогресс</div>
+    <div style="display:flex;gap:12px;flex:1;flex-wrap:wrap">
+      <span style="font-size:13px"><span style="font-size:18px">👩‍💼</span> Асель: <strong style="color:var(--accent)">${u1done}/12</strong></span>
+      <span style="font-size:13px"><span style="font-size:18px">🙋</span> Акрам: <strong style="color:#6234A8">${u2done}/12</strong></span>
+      ${bothDoneCount>0?`<span style="font-size:13px">🤝 Вместе: <strong style="color:var(--green)">${bothDoneCount}/12</strong></span>`:''}
+    </div>`;
+  g.appendChild(sumDiv);
+
+  LESSONS.forEach((l,i)=>{
+    const bothDone=isDone(l.id);
+    const myDone=isMyDone(l.id);
+    const locked=l.vocab.length===0&&i>1;
+    const bd=s.blocks?.[l.id]||{};
+    const pct=Math.round(Object.keys(bd).length/6*100);
+    const c=document.createElement('div');
+    c.className=`lcard${bothDone?' done':''}${locked?' locked':''}`;
+    // Show who completed
+    const s1=s.done1?.[l.id]?'👩‍💼':'';
+    const s2=s.done2?.[l.id]?'🙋':'';
+    const badges=s1||s2?`<div style="position:absolute;top:12px;right:${bothDone?'40px':'12px'};font-size:14px">${s1}${s2}</div>`:'';
+    c.innerHTML=`${badges}<div class="num">Урок ${l.id}</div><div class="ttl">${l.title}</div><div class="meta">${l.level} · ${l.theme}</div><div class="pbar"><div class="pbar-f" style="width:${pct}%"></div></div>`;
+    if(!locked)c.onclick=()=>openLesson(l.id);
+    g.appendChild(c);
+  });
+}
+
+function getLes(id){ return LESSONS.find(l=>l.id===id); }
+
+// ═══════════ OPEN LESSON ═══════════
+function openLesson(id){
+  CUR={lessonId:id,block:'vocab',cardIdx:0,cardFlipped:false,vocabMode:'table',testState:null};
+  const l=getLes(id);
+  document.getElementById('lnav-title').textContent=`${l.id}. ${l.title}`;
+  document.getElementById('s-home').classList.remove('active');
+  document.getElementById('s-lesson').classList.add('active');
+  window.scrollTo(0,0);
+  renderTabs(l);
+  showBlock('vocab');
+}
+
+function goHome(){
+  document.getElementById('s-lesson').classList.remove('active');
+  document.getElementById('s-home').classList.add('active');
+  renderHome();
+  window.scrollTo(0,0);
+}
+
+function renderTabs(l){
+  const nav=document.getElementById('btabs');
+  nav.innerHTML='';
+  BLOCK_DEFS.forEach(b=>{
+    const btn=document.createElement('button');
+    btn.className=`btab${b.id===CUR.block?' active':''}${isBlockDone(l.id,b.id)?' done':''}`;
+    btn.textContent=`${b.icon} ${b.label}`;
+    btn.onclick=()=>showBlock(b.id);
+    nav.appendChild(btn);
+  });
+  const done=BLOCK_DEFS.filter(b=>isBlockDone(l.id,b.id)).length;
+  document.getElementById('lnav-prog').textContent=`${done}/6`;
+}
+
+function updateTabs(lid){ const l=getLes(lid); if(l) renderTabs(l); }
+
+function showBlock(bid){
+  CUR.block=bid;
+  document.querySelectorAll('.btab').forEach((t,i)=>{ t.classList.toggle('active',BLOCK_DEFS[i]?.id===bid); });
+  const l=getLes(CUR.lessonId);
+  const c=document.getElementById('lcontent');
+  c.innerHTML='';
+  window.scrollTo(0,0);
+  if(bid==='vocab') bVocab(l,c);
+  else if(bid==='text') bText(l,c);
+  else if(bid==='video') bVideo(l,c);
+  else if(bid==='grammar') bGrammar(l,c);
+  else if(bid==='patterns') bPatterns(l,c);
+  else if(bid==='speaking') bSpeaking(l,c);
+}
+
+// ═══════════ SPEECH ═══════════
+function speak(text){
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='en-US'; u.rate=0.85;
+  window.speechSynthesis.speak(u);
+}
+
+// ═══════════ BLOCK: VOCAB ═══════════
+function bVocab(l,c){
+  if(!l.vocab.length){ c.innerHTML='<div class="info">Словарь для этого урока скоро будет добавлен.</div>'; return; }
+  const p=P.get();
+  const known=l.vocab.filter((_,i)=>p.words?.[`${l.id}_${i}`]==='known').length;
+  const pct=Math.round(known/l.vocab.length*100);
+  c.innerHTML=`
+    <div class="bhead"><div class="bey">Блок 1 · 📖 Словарь</div><div class="btitle">20 слов этого урока</div><div class="bdesc">Читай вслух, нажимай 🔊 для произношения. Отмечай «знаю».</div></div>
+    <div class="vprog"><div class="vprog-f" id="vpf" style="width:${pct}%"></div></div>
+    <div class="vstatus" id="vstatus">${known} из ${l.vocab.length} знаю</div>
+    <div class="vcontrols">
+      <button class="vbtn${CUR.vocabMode==='table'?' active':''}" onclick="switchMode('table',${l.id})">📋 Таблица</button>
+      <button class="vbtn${CUR.vocabMode==='cards'?' active':''}" onclick="switchMode('cards',${l.id})">🃏 Карточки</button>
+      <button class="vbtn${CUR.vocabMode==='test'?' active':''}" onclick="switchMode('test',${l.id})">✏️ Тест</button>
+    </div>
+    <div id="vdisplay"></div>
+    <div class="bfooter"><button class="nextb" onclick="nextBlock('vocab','text')">К тексту →</button></div>`;
+  renderVocabDisplay(l);
+}
+
+function switchMode(mode,lid){
+  CUR.vocabMode=mode; CUR.cardIdx=0; CUR.cardFlipped=false; CUR.testState=null;
+  document.querySelectorAll('.vbtn').forEach((b,i)=>b.classList.toggle('active',['table','cards','test'][i]===mode));
+  renderVocabDisplay(getLes(lid));
+}
+
+function renderVocabDisplay(l){
+  if(CUR.vocabMode==='table') renderVocabTable(l);
+  else if(CUR.vocabMode==='cards') renderVocabCards(l);
+  else renderVocabTest(l);
+}
+
+function updateVocabProgress(lid){
+  const l=getLes(lid); if(!l)return;
+  const p=P.get();
+  const known=l.vocab.filter((_,i)=>p.words?.[`${lid}_${i}`]==='known').length;
+  const pct=Math.round(known/l.vocab.length*100);
+  const f=document.getElementById('vpf'); if(f)f.style.width=pct+'%';
+  const s=document.getElementById('vstatus'); if(s)s.textContent=`${known} из ${l.vocab.length} знаю`;
+}
+
+function renderVocabTable(l){
+  const p=P.get();
+  const d=document.getElementById('vdisplay'); if(!d)return;
+  let h=`<div style="overflow-x:auto"><table class="vtable"><thead><tr><th>#</th><th>Слово</th><th>Транскрипция</th><th>Произношение</th><th>Перевод</th><th>Пример</th><th></th></tr></thead><tbody>`;
+  l.vocab.forEach((w,i)=>{
+    const st=p.words?.[`${l.id}_${i}`]||'';
+    h+=`<tr><td style="color:var(--accent);font-weight:700">${i+1}</td>
+    <td><span class="wen">${w.en}</span><span class="wtr">${w.tr}</span><span class="wtrru">${w.trRu}</span></td>
+    <td><button class="speak-btn" onclick="speak('${w.en.replace(/'/g,"\\'")}')">🔊</button></td>
+    <td>${w.ru}</td>
+    <td><span class="wex">${w.ex}</span><span class="wexru">${w.exRu}</span></td>
+    <td><button class="mark-btn${st==='known'?' known':''}" onclick="markWord(${l.id},${i},'known')">${st==='known'?'✓ знаю':'знаю'}</button></td></tr>`;
+  });
+  h+='</tbody></table></div>';
+  d.innerHTML=h;
+}
+
+function renderVocabCards(l){
+  const d=document.getElementById('vdisplay'); if(!d)return;
+  const w=l.vocab[CUR.cardIdx]; if(!w)return;
+  const total=l.vocab.length;
+  d.innerHTML=`
+    <div class="card-wrap">
+      <div class="card-cnav">
+        <button onclick="cardNav(${l.id},-1)" ${CUR.cardIdx===0?'disabled':''}>← Пред</button>
+        <span class="card-pos">${CUR.cardIdx+1} / ${total}</span>
+        <button onclick="cardNav(${l.id},1)" ${CUR.cardIdx===total-1?'disabled':''}>След →</button>
+      </div>
+      <div class="flashcard${CUR.cardFlipped?' flipped':''}" id="fc" onclick="flipCard(${l.id})">
+        <div class="card-inner">
+          <div class="cface front">
+            <div class="chint">Нажми — увидишь перевод</div>
+            <div class="cword">${w.en}</div>
+            <div class="ctr">${w.tr}</div>
+            <div class="ctrru">${w.trRu}</div>
+            <button class="card-sound" onclick="event.stopPropagation();speak('${w.en.replace(/'/g,"\\'")}')">🔊 Слушать</button>
+          </div>
+          <div class="cface back">
+            <div class="cru">${w.ru}</div>
+            <div class="cex">${w.ex}</div>
+            <div class="cexru">${w.exRu}</div>
+            <div class="card-acts">
+              <button class="cact again" onclick="event.stopPropagation();markWord(${l.id},${CUR.cardIdx},'review');cardNav(${l.id},1)">Повторить</button>
+              <button class="cact good" onclick="event.stopPropagation();markWord(${l.id},${CUR.cardIdx},'known');cardNav(${l.id},1)">Знаю ✓</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button onclick="addMyVocab(${l.id},${CUR.cardIdx})" style="background:none;border:1px solid var(--teal);color:var(--teal);padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600">+ В мой словарь</button>
+    </div>`;
+}
+
+function flipCard(lid){ CUR.cardFlipped=!CUR.cardFlipped; const fc=document.getElementById('fc'); if(fc)fc.classList.toggle('flipped',CUR.cardFlipped); }
+function cardNav(lid,dir){ const l=getLes(lid); CUR.cardIdx=Math.max(0,Math.min(l.vocab.length-1,CUR.cardIdx+dir)); CUR.cardFlipped=false; renderVocabCards(l); }
+
+function renderVocabTest(l){
+  const d=document.getElementById('vdisplay'); if(!d)return;
+  if(!CUR.testState){
+    // Pick 10 random words
+    const idxs=[...Array(l.vocab.length).keys()].sort(()=>Math.random()-.5).slice(0,Math.min(10,l.vocab.length));
+    CUR.testState={idxs,answers:new Array(idxs.length).fill(''),checked:new Array(idxs.length).fill(false),done:false};
+  }
+  const ts=CUR.testState;
+  if(ts.done){
+    const correct=ts.answers.filter((a,i)=>checkAnswer(a,l.vocab[ts.idxs[i]].en)).length;
+    d.innerHTML=`<div class="vtest-score">
+      <div class="score-num">${correct}/${ts.idxs.length}</div>
+      <div class="score-lbl">правильных ответов</div>
+      <div style="margin-top:8px;font-size:13px;color:var(--ink2)">${correct===ts.idxs.length?'Отлично! Все слова знаешь 🎉':correct>=ts.idxs.length*.7?'Хороший результат! Повтори оставшиеся.':'Повтори слова в режиме карточек и попробуй снова.'}</div>
+      <button class="retry-btn" onclick="CUR.testState=null;renderVocabTest(getLes(${l.id}))">Попробовать снова</button>
+    </div>`;
+    return;
+  }
+  let h='<div class="vtest-wrap">';
+  ts.idxs.forEach((wi,qi)=>{
+    const w=l.vocab[wi];
+    const ans=ts.answers[qi];
+    const ch=ts.checked[qi];
+    const isOk=ch&&checkAnswer(ans,w.en);
+    const isErr=ch&&!checkAnswer(ans,w.en);
+    h+=`<div class="vtest-q">
+      <div class="qnum">Вопрос ${qi+1}</div>
+      <div class="qru">${w.ru}</div>
+      <div class="qhint">${w.tr} · ${w.trRu}</div>
+      <input class="vtest-input${isOk?' correct':isErr?' wrong':''}" type="text" placeholder="Напиши по-английски..." value="${ans}" ${ch?'readonly':''} oninput="CUR.testState.answers[${qi}]=this.value" onkeydown="if(event.key==='Enter')checkTestQ(${l.id},${qi})">
+      ${ch?`<div class="vtest-feedback show ${isOk?'ok':'err'}">${isOk?'✓ Правильно!':'✗ Правильно: '+w.en}</div>`:''}
+      ${!ch?`<button class="check-btn" onclick="checkTestQ(${l.id},${qi})">Проверить</button>`:''}
+    </div>`;
+  });
+  h+=`</div><button class="check-btn" style="width:100%;margin-top:12px" onclick="finishTest(${l.id})">Завершить тест</button>`;
+  d.innerHTML=h;
+}
+
+function checkAnswer(input,correct){
+  return input.trim().toLowerCase()===correct.toLowerCase();
+}
+
+function checkTestQ(lid,qi){
+  const ts=CUR.testState; if(!ts)return;
+  const inp=document.querySelectorAll('.vtest-input')[qi];
+  if(inp) ts.answers[qi]=inp.value;
+  ts.checked[qi]=true;
+  renderVocabTest(getLes(lid));
+}
+
+function finishTest(lid){
+  CUR.testState.done=true;
+  renderVocabTest(getLes(lid));
+}
+
+// ═══════════ BLOCK: TEXT ═══════════
+function bText(l,c){
+  if(!l.text.length){ c.innerHTML='<div class="info">Текст для этого урока скоро будет добавлен.</div>'; return; }
+  const textHtml=l.text.map(s=>`<p>${s}</p>`).join('');
+  const glossHtml=l.glossary.map(g=>`<span class="gi"><strong>${g.en}</strong> <span>— ${g.ru}</span></span>`).join('');
+  const qsHtml=l.questions.map((q,i)=>`
+    <div class="qi">
+      <div class="qi-text"><em>${i+1}.</em>${q}</div>
+      <textarea class="ans-ta" rows="2" placeholder="Твой ответ (можно на русском)..." onchange="saveAns(${l.id},'q',${i},this.value)">${getAns(l.id,'q',i)}</textarea>
+      <button class="ai-check-btn" onclick="aiCheckText(${l.id},${i},this)">🤖 Проверить ответ</button>
+      <div class="ai-result" id="airt-${l.id}-${i}"></div>
+    </div>`).join('');
+  c.innerHTML=`
+    <div class="bhead"><div class="bey">Блок 2 · 📄 Чтение</div><div class="btitle">Пойми смысл</div><div class="bdesc">Читай вслух по одному предложению. Глоссарий внизу — незнакомые слова из текста.</div></div>
+    <div class="rtext">${textHtml}</div>
+    <div class="gloss-wrap"><div class="gloss-head">📌 Глоссарий — слова из текста которых нет в словаре</div><div class="gloss-items">${glossHtml}</div></div>
+    <div class="bhead" style="margin-top:16px"><div class="bey">Вопросы по тексту</div><div class="bdesc">Отвечай своими словами. Нажми «Проверить» — AI посмотрит правильно ли поняла.</div></div>
+    <div class="qs-list">${qsHtml}</div>
+    <div class="bfooter"><button onclick="showBlock('vocab')">← Словарь</button><button class="nextb" onclick="nextBlock('text','video')">К видео →</button></div>`;
+}
+
+async function aiCheckText(lid,qi,btn){
+  const l=getLes(lid);
+  const ta=btn.previousElementSibling;
+  const answer=ta.value.trim();
+  if(!answer){ toast('Сначала напиши ответ'); return; }
+  const question=l.questions[qi];
+  const resultDiv=document.getElementById(`airt-${lid}-${qi}`);
+  btn.disabled=true; btn.textContent='⏳ Проверяю...';
+  resultDiv.className='ai-result show';
+  resultDiv.innerHTML='<div class="ai-loading">Проверяю <div class="ai-dots"><span></span><span></span><span></span></div></div>';
+  try {
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",max_tokens:400,
+        messages:[{role:"user",content:`Ты помощник по английскому языку. Текст урока:\n"${l.text.join(' ')}"\n\nВопрос: "${question}"\nОтвет ученика: "${answer}"\n\nПроверь ответ — правильно ли понял(а) ученик текст? Ответь коротко на русском:\n1) Правильно или нет (с объяснением)\n2) Если неточность — что именно не так\n3) Правильный ответ одним-двумя предложениями`}]
+      })
+    });
+    const data=await resp.json();
+    const text=data.content?.[0]?.text||'Ошибка проверки';
+    resultDiv.innerHTML=`<div class="ai-label">🤖 Проверка AI</div>${text.replace(/\n/g,'<br>')}`;
+  } catch(e) {
+    resultDiv.innerHTML='<div class="ai-label">Ошибка</div>Нет соединения. Проверь интернет.';
+  }
+  btn.disabled=false; btn.textContent='🤖 Проверить ответ';
+}
+
+// ═══════════ BLOCK: VIDEO ═══════════
+function bVideo(l,c){
+  const v=VIDEOS[l.id];
+  const vbox=v?`<div class="video-box">
+    <div class="video-thumb">▶</div>
+    <div class="video-info">
+      <div class="vtitle">${v.title}</div>
+      <div class="vchan">${v.ch} · ${v.dur}</div>
+      <a class="video-link" href="https://youtube.com/watch?v=${v.id}" target="_blank">▶ Смотреть на YouTube</a>
+    </div>
+  </div>`:'';
+  c.innerHTML=`
+    <div class="bhead"><div class="bey">Блок 3 · 🎬 Видео</div><div class="btitle">Учимся слышать живой язык</div><div class="bdesc">Смотрите вместе. Сначала без субтитров, потом с.</div></div>
+    ${vbox}
+    <div class="video-task">${l.videoTask||'Найди видео по теме урока на YouTube (3–5 минут).'}</div>
+    <div class="vfield"><div class="fl">Что поняла без субтитров:</div>
+      <textarea class="ans-ta" rows="2" placeholder="Любые слова и фразы..." onchange="saveAns(${l.id},'v','nosub',this.value)">${getAns(l.id,'v','nosub')}</textarea>
+      <button class="ai-check-btn" onclick="aiCheckVideo(${l.id},'nosub',this,'Что ученик понял из видео без субтитров')">🤖 Проверить</button>
+      <div class="ai-result" id="airv-${l.id}-nosub"></div>
+    </div>
+    <div class="vfield"><div class="fl">Слова из нашего словаря которые услышала:</div>
+      <textarea class="ans-ta" rows="2" placeholder="Напиши слова..." onchange="saveAns(${l.id},'v','words',this.value)">${getAns(l.id,'v','words')}</textarea>
+      <button class="ai-check-btn" onclick="aiCheckVideo(${l.id},'words',this,'Слова из словаря которые ученик услышал в видео про ${l.title}')">🤖 Проверить</button>
+      <div class="ai-result" id="airv-${l.id}-words"></div>
+    </div>
+    <div class="vfield"><div class="fl">2–3 фразы из видео которые хочу запомнить:</div>
+      <textarea class="ans-ta" rows="3" placeholder="Запиши фразы..." onchange="saveAns(${l.id},'v','phrases',this.value)">${getAns(l.id,'v','phrases')}</textarea>
+      <button class="ai-check-btn" onclick="aiCheckVideo(${l.id},'phrases',this,'Фразы из видео которые записал ученик')">🤖 Проверить</button>
+      <div class="ai-result" id="airv-${l.id}-phrases"></div>
+    </div>
+    <div class="bfooter"><button onclick="showBlock('text')">← Чтение</button><button class="nextb" onclick="nextBlock('video','grammar')">К грамматике →</button></div>`;
+}
+
+async function aiCheckVideo(lid,key,btn,context){
+  const ta=btn.previousElementSibling;
+  const answer=ta.value.trim();
+  if(!answer){ toast('Сначала заполни поле'); return; }
+  const l=getLes(lid);
+  const resultDiv=document.getElementById(`airv-${lid}-${key}`);
+  btn.disabled=true; btn.textContent='⏳ Проверяю...';
+  resultDiv.className='ai-result show';
+  resultDiv.innerHTML='<div class="ai-loading">Проверяю <div class="ai-dots"><span></span><span></span><span></span></div></div>';
+  try {
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",max_tokens:300,
+        messages:[{role:"user",content:`Ты помощник по английскому. Тема урока: "${l.title}". Контекст: ${context}.\nУченик написал: "${answer}"\n\nДай короткий фидбек на русском: что правильно, что можно улучшить, и если есть ошибки в английских словах — исправь их.`}]
+      })
+    });
+    const data=await resp.json();
+    const text=data.content?.[0]?.text||'Ошибка';
+    resultDiv.innerHTML=`<div class="ai-label">🤖 Проверка AI</div>${text.replace(/\n/g,'<br>')}`;
+  } catch(e) {
+    resultDiv.innerHTML='<div class="ai-label">Ошибка</div>Нет соединения.';
+  }
+  btn.disabled=false; btn.textContent='🤖 Проверить';
+}
+
+// ═══════════ BLOCK: GRAMMAR ═══════════
+function bGrammar(l,c){
+  if(!l.grammar.length){ c.innerHTML='<div class="info">Грамматика для этого урока скоро будет добавлена.</div>'; return; }
+  const rulesHtml=l.grammar.map((r,ri)=>`
+    <div class="grule">
+      <div class="grule-hdr" style="background:${r.color}" onclick="toggleRule(${ri})">
+        <span>${r.title}</span><span class="grule-chev" id="gc-${ri}">▼</span>
+      </div>
+      <div class="grule-body" id="gb-${ri}">
+        <div class="gpoints">
+          ${r.points.map(pt=>`<div><div class="gpt-h">${pt.h}</div><div class="gpt-t">${pt.t.replace(/\n/g,'<br>').replace(/❌/g,'<span style="color:#C44A1A">❌</span>').replace(/✅/g,'<span style="color:#1A7A42">✅</span>').replace(/⚠️/g,'<span style="color:#C47A1A">⚠️</span>')}</div></div>`).join('')}
+        </div>
+        ${r.quiz?`<div class="gram-quiz">
+          <div class="gram-quiz-title">🎯 Мини-тест — понял(а) правило?</div>
+          ${r.quiz.map((q,qi)=>`
+            <div class="gq-item">
+              <div class="gq-q">${qi+1}. ${q.q}</div>
+              <input class="gq-input" type="text" placeholder="Твой ответ..." id="gqi-${ri}-${qi}" onkeydown="if(event.key==='Enter')checkGQ(${ri},${qi},'${q.a.replace(/'/g,"\\'")}','${q.hint.replace(/'/g,"\\'")}')">
+              <div class="gq-fb" id="gqfb-${ri}-${qi}"></div>
+            </div>`).join('')}
+          <button class="check-btn" onclick="checkAllGQ(${ri},${JSON.stringify(r.quiz).replace(/"/g,'&quot;')})">Проверить все</button>
+          <button class="ai-check-btn" style="margin-top:8px" onclick="aiCheckGrammar(${ri},${l.id},this,'${r.title.replace(/'/g,"\\'")}')">🤖 AI: задай вопрос по правилу</button>
+          <div class="ai-result" id="airg-${l.id}-${ri}"></div>
+        </div>`:''}
+      </div>
+    </div>`).join('');
+  c.innerHTML=`
+    <div class="bhead"><div class="bey">Блок 4 · ⚙️ Грамматика</div><div class="btitle">Три правила этого урока</div><div class="bdesc">Нажми на правило чтобы открыть. Мини-тест внутри каждого.</div></div>
+    <div class="grules">${rulesHtml}</div>
+    <div class="bfooter"><button onclick="showBlock('video')">← Видео</button><button class="nextb" onclick="nextBlock('grammar','patterns')">К предложениям →</button></div>`;
+  toggleRule(0);
+}
+
+function toggleRule(ri){
+  const body=document.getElementById(`gb-${ri}`);
+  const chev=document.getElementById(`gc-${ri}`);
+  if(!body)return;
+  const open=body.classList.toggle('open');
+  if(chev)chev.style.transform=open?'rotate(180deg)':'';
+}
+
+function checkGQ(ri,qi,correct,hint){
+  const inp=document.getElementById(`gqi-${ri}-${qi}`);
+  const fb=document.getElementById(`gqfb-${ri}-${qi}`);
+  if(!inp||!fb)return;
+  const ok=checkAnswer(inp.value,correct);
+  inp.className='gq-input '+(ok?'correct':'wrong');
+  fb.className='gq-fb show';
+  fb.style.color=ok?'var(--green)':'var(--red)';
+  fb.textContent=ok?'✓ Правильно!':`✗ Правильно: "${correct}" — Подсказка: ${hint}`;
+}
+
+function checkAllGQ(ri,quizJson){
+  try {
+    const quiz=JSON.parse(quizJson.replace(/&quot;/g,'"'));
+    quiz.forEach((_,qi)=>{
+      const inp=document.getElementById(`gqi-${ri}-${qi}`);
+      if(inp&&inp.value) checkGQ(ri,qi,quiz[qi].a,quiz[qi].hint);
+    });
+  } catch(e){}
+}
+
+async function aiCheckGrammar(ri,lid,btn,ruleTitle){
+  const l=getLes(lid);
+  const resultDiv=document.getElementById(`airg-${lid}-${ri}`);
+  btn.disabled=true; btn.textContent='⏳ Генерирую...';
+  resultDiv.className='ai-result show';
+  resultDiv.innerHTML='<div class="ai-loading">Генерирую вопрос <div class="ai-dots"><span></span><span></span><span></span></div></div>';
+  try {
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",max_tokens:300,
+        messages:[{role:"user",content:`Ты учитель английского. Правило: "${ruleTitle}". Тема урока: "${l.title}".\n\nПридумай 1 практический вопрос-задание по этому правилу на русском языке. Вопрос должен быть простым, с конкретным примером из жизни. После вопроса напиши правильный ответ.`}]
+      })
+    });
+    const data=await resp.json();
+    const text=data.content?.[0]?.text||'Ошибка';
+    resultDiv.innerHTML=`<div class="ai-label">🤖 Дополнительное задание</div>${text.replace(/\n/g,'<br>')}`;
+  } catch(e) {
+    resultDiv.innerHTML='<div class="ai-label">Ошибка</div>Нет соединения.';
+  }
+  btn.disabled=false; btn.textContent='🤖 AI: задай вопрос по правилу';
+}
+
+// ═══════════ BLOCK: PATTERNS ═══════════
+function bPatterns(l,c){
+  if(!l.patterns.length){ c.innerHTML='<div class="info">Задания скоро будут добавлены.</div>'; return; }
+  const pHtml=l.patterns.map((pt,pi)=>`
+    <div class="pitem">
+      <div class="pschema">Схема: ${pt.schema}</div>
+      <div class="pex">${pt.ex}</div>
+      <div class="pexru">${pt.exRu}</div>
+      <div class="pinputs">
+        ${[1,2,3].map(n=>`<input class="pinput" type="text" placeholder="Мой пример ${n}..." value="${getAns(l.id,'p',`${pi}_${n}`)}" onchange="saveAns(${l.id},'p','${pi}_${n}',this.value)" id="pin-${pi}-${n}">`).join('')}
+      </div>
+      <button class="ai-check-btn" style="margin-top:10px" onclick="aiCheckPattern(${l.id},${pi},this,'${pt.schema.replace(/'/g,"\\'")}')">🤖 Проверить мои примеры</button>
+      <div class="ai-result" id="airp-${l.id}-${pi}"></div>
+    </div>`).join('');
+  c.innerHTML=`
+    <div class="bhead"><div class="bey">Блок 5 · ✏️ Предложения</div><div class="btitle">Составляем свои примеры</div><div class="bdesc">Напиши 3 примера по каждой схеме — о себе или своей жизни. AI проверит грамматику.</div></div>
+    <div class="plist">${pHtml}</div>
+    <div class="bfooter"><button onclick="showBlock('grammar')">← Грамматика</button><button class="nextb" onclick="nextBlock('patterns','speaking')">К разговору →</button></div>`;
+}
+
+async function aiCheckPattern(lid,pi,btn,schema){
+  const l=getLes(lid);
+  const inputs=[1,2,3].map(n=>document.getElementById(`pin-${pi}-${n}`)?.value||'').filter(v=>v.trim());
+  if(!inputs.length){ toast('Сначала напиши хотя бы один пример'); return; }
+  const resultDiv=document.getElementById(`airp-${lid}-${pi}`);
+  btn.disabled=true; btn.textContent='⏳ Проверяю...';
+  resultDiv.className='ai-result show';
+  resultDiv.innerHTML='<div class="ai-loading">Проверяю <div class="ai-dots"><span></span><span></span><span></span></div></div>';
+  try {
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",max_tokens:400,
+        messages:[{role:"user",content:`Ты учитель английского для уровня A2-B1. Ученик составлял предложения по схеме: "${schema}"\n\nПредложения ученика:\n${inputs.map((s,i)=>`${i+1}. ${s}`).join('\n')}\n\nПроверь каждое предложение на русском:\n- Правильно ли используется схема\n- Есть ли грамматические ошибки\n- Если есть ошибка — дай исправленный вариант\nБудь доброжелательным, отмечай что получилось хорошо.`}]
+      })
+    });
+    const data=await resp.json();
+    const text=data.content?.[0]?.text||'Ошибка';
+    resultDiv.innerHTML=`<div class="ai-label">🤖 Проверка AI</div>${text.replace(/\n/g,'<br>')}`;
+  } catch(e) {
+    resultDiv.innerHTML='<div class="ai-label">Ошибка</div>Нет соединения.';
+  }
+  btn.disabled=false; btn.textContent='🤖 Проверить мои примеры';
+}
+
+// ═══════════ BLOCK: SPEAKING ═══════════
+function bSpeaking(l,c){
+  c.innerHTML=`
+    <div class="bhead"><div class="bey">Блок 6 · 🗣️ Разговор</div><div class="btitle">Живой диалог</div><div class="bdesc">Говорите вдвоём. Ошибки — это нормально, не останавливайтесь.</div></div>
+    <div class="speak-task">${l.speaking||'Поговорите по теме урока на английском.'}</div>
+    <div style="margin-bottom:14px">
+      <div class="fl">Фразы которые понадобились но не знала — запиши:</div>
+      <textarea class="notes-ta" placeholder="Прямо во время разговора..." onchange="saveAns(${l.id},'s','phrases',this.value)">${getAns(l.id,'s','phrases')}</textarea>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="fl">Заметки занятия:</div>
+      <textarea class="notes-ta" placeholder="Что понравилось, что было сложно..." onchange="saveAns(${l.id},'s','notes',this.value)">${getAns(l.id,'s','notes')}</textarea>
+    </div>
+    <button class="done-btn${isDone(l.id)?' done':''}" id="done-btn" onclick="completeLesson(${l.id})">
+      ${isDone(l.id)?'✓ Урок завершён':'Завершить урок ✓'}
+    </button>
+    <div class="bfooter" style="margin-top:10px"><button onclick="showBlock('patterns')">← Предложения</button></div>`;
+}
+
+function completeLesson(lid){
+  // First: save speaking blocks, then go to final test
+  doneBlock(lid,'speaking');
+  startFinalTest(lid);
+}
+
+function startFinalTest(lid){
+  const l=getLes(lid);
+  const c=document.getElementById('lcontent');
+  window.scrollTo(0,0);
+  // Build test: 5 vocab words + grammar quiz from rules + 1 pattern
+  const vocabIdxs=[...Array(l.vocab.length).keys()].sort(()=>Math.random()-.5).slice(0,Math.min(5,l.vocab.length));
+  const gramQs=[];
+  (l.grammar||[]).forEach(r=>{ if(r.quiz) r.quiz.slice(0,1).forEach(q=>gramQs.push({...q,rule:r.title})); });
+  const pattern=l.patterns?.[0]||null;
+  CUR.ftestState={lid,vocabIdxs,gramQs,pattern,submitted:false,score:0,total:0};
+  renderFinalTest(l);
+}
+
+function renderFinalTest(l){
+  const c=document.getElementById('lcontent');
+  const ts=CUR.ftestState;
+  if(ts.submitted){ renderFinalResult(l); return; }
+  let h=`<div class="bhead"><div class="bey">🎯 Финальный тест</div><div class="btitle">Проверь себя по уроку</div><div class="bdesc">Тест по словам, грамматике и схемам. У каждой участницы свой результат.</div></div>
+  <div class="ftest-wrap">`;
+
+  // Vocab section
+  if(ts.vocabIdxs.length){
+    h+=`<div class="ftest-section"><div class="ftest-section-hdr" style="background:var(--accent)">📖 Слова (${ts.vocabIdxs.length} из 20)</div><div class="ftest-section-body">`;
+    ts.vocabIdxs.forEach((wi,qi)=>{
+      const w=l.vocab[wi];
+      h+=`<div class="ftest-q"><div class="ftest-q-text">${qi+1}. Как по-английски: <strong>${w.ru}</strong>?</div>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:6px">${w.tr} · ${w.trRu}</div>
+      <input class="ftest-input" type="text" id="ftv-${qi}" placeholder="Напиши английское слово...">
+      <div class="ftest-fb" id="ftvfb-${qi}"></div></div>`;
+    });
+    h+='</div></div>';
+  }
+
+  // Grammar section
+  if(ts.gramQs.length){
+    h+=`<div class="ftest-section"><div class="ftest-section-hdr" style="background:var(--purple)">⚙️ Грамматика</div><div class="ftest-section-body">`;
+    ts.gramQs.forEach((q,qi)=>{
+      h+=`<div class="ftest-q"><div class="ftest-q-text" style="font-size:12px;color:var(--ink3);margin-bottom:3px">${q.rule}</div>
+      <div class="ftest-q-text">${qi+1}. ${q.q}</div>
+      <input class="ftest-input" type="text" id="ftg-${qi}" placeholder="Твой ответ...">
+      <div class="ftest-fb" id="ftgfb-${qi}"></div></div>`;
+    });
+    h+='</div></div>';
+  }
+
+  // Pattern section
+  if(pattern){
+    h+=`<div class="ftest-section"><div class="ftest-section-hdr" style="background:var(--teal)">✏️ Составь предложение</div><div class="ftest-section-body">
+    <div class="ftest-q"><div class="ftest-q-text">Используй схему: <strong>${pattern.schema}</strong></div>
+    <div style="font-size:12px;color:var(--ink3);margin-bottom:8px">Пример: ${pattern.ex} — ${pattern.exRu}</div>
+    <input class="ftest-input" type="text" id="ftp-0" placeholder="Составь своё предложение...">
+    <div class="ftest-fb" id="ftpfb-0"></div></div>
+    </div></div>`;
+  }
+
+  h+=`</div><button class="ftest-submit" onclick="submitFinalTest(${l.id})">Проверить тест →</button>`;
+  c.innerHTML=h;
+}
+
+async function submitFinalTest(lid){
+  const l=getLes(lid);
+  const ts=CUR.ftestState;
+  let score=0, total=0;
+
+  // Check vocab
+  ts.vocabIdxs.forEach((wi,qi)=>{
+    const inp=document.getElementById(`ftv-${qi}`);
+    const fb=document.getElementById(`ftvfb-${qi}`);
+    if(!inp||!fb)return;
+    const w=l.vocab[wi];
+    total++;
+    const ok=inp.value.trim().toLowerCase()===w.en.toLowerCase();
+    if(ok)score++;
+    inp.className='ftest-input '+(ok?'ok':'err');
+    inp.readOnly=true;
+    fb.className='ftest-fb show '+(ok?'ok':'err');
+    fb.textContent=ok?'✓ Правильно!':'✗ Правильно: '+w.en;
+  });
+
+  // Check grammar
+  ts.gramQs.forEach((q,qi)=>{
+    const inp=document.getElementById(`ftg-${qi}`);
+    const fb=document.getElementById(`ftgfb-${qi}`);
+    if(!inp||!fb)return;
+    total++;
+    const ok=inp.value.trim().toLowerCase()===q.a.toLowerCase();
+    if(ok)score++;
+    inp.className='ftest-input '+(ok?'ok':'err');
+    inp.readOnly=true;
+    fb.className='ftest-fb show '+(ok?'ok':'err');
+    fb.textContent=ok?'✓ Правильно!':('✗ Правильно: "'+q.a+'" — Подсказка: '+q.hint);
+  });
+
+  // Check pattern via AI
+  if(l.patterns?.[0]){
+    const inp=document.getElementById('ftp-0');
+    const fb=document.getElementById('ftpfb-0');
+    if(inp&&inp.value.trim()&&fb){
+      total++;
+      fb.className='ftest-fb show';
+      fb.textContent='⏳ Проверяю через AI...';
+      try{
+        const resp=await fetch("https://api.anthropic.com/v1/messages",{
+          method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:150,
+            messages:[{role:"user",content:`Ученик A2-B1. Схема: "${l.patterns[0].schema}". Предложение: "${inp.value}". Правильно ли? Ответь: "✓ Правильно" или "✗ Ошибка: [что не так и как исправить]" — одной строкой на русском.`}]})
+        });
+        const data=await resp.json();
+        const text=data.content?.[0]?.text||'';
+        const ok=text.startsWith('✓');
+        if(ok)score++;
+        inp.className='ftest-input '+(ok?'ok':'err');
+        inp.readOnly=true;
+        fb.textContent=text;
+        fb.className='ftest-fb show '+(ok?'ok':'err');
+      }catch(e){
+        fb.textContent='Нет соединения для проверки предложения';
+        total--; // don't count if can't check
+      }
+    }
+  }
+
+  ts.score=score; ts.total=total; ts.submitted=true;
+  // Save result per user
+  P.set(d=>{ if(!d.tests)d.tests={}; d.tests[lid]={score,total,date:new Date().toLocaleDateString('ru')}; });
+  // Mark lesson done for this user
+  BLOCK_DEFS.forEach(b=>doneBlock(lid,b.id));
+  markDone(lid);
+  // Scroll to show results
+  setTimeout(()=>{ window.scrollTo(0,0); renderFinalResult(l); },300);
+}
+
+function renderFinalResult(l){
+  const c=document.getElementById('lcontent');
+  const ts=CUR.ftestState;
+  const pct=ts.total?Math.round(ts.score/ts.total*100):0;
+  const msg=pct===100?'Отлично! Все задания выполнены верно 🎉':
+    pct>=70?'Хороший результат! Несколько слов стоит повторить.':
+    'Рекомендуем повторить словарь и грамматику этого урока.';
+  const color=pct===100?'var(--green)':pct>=70?'var(--accent)':'var(--orange)';
+  c.innerHTML=`<div class="ftest-result">
+    <div class="ftest-score" style="color:${color}">${ts.score}/${ts.total}</div>
+    <div class="ftest-score-lbl">${pct}% — ${CURRENT_USER?.name||'Ты'}</div>
+    <div class="ftest-msg">${msg}</div>
+    <button class="ftest-retry" onclick="CUR.ftestState=null;startFinalTest(${l.id})">Пройти снова</button>
+    <button class="ftest-done" onclick="goHome()">На главную →</button>
+  </div>`;
+}
+
+// ═══════════ HELPERS ═══════════
+function nextBlock(cur,next){ doneBlock(CUR.lessonId,cur); showBlock(next); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+
+// ═══════════ INIT ═══════════
+document.getElementById('user-screen').style.display='none';
+initUser();
+</script>
+</body>
+</html>
