@@ -513,17 +513,27 @@ function loadST(uid){ try{ return JSON.parse(localStorage.getItem(storageKey(uid
 function saveST(){ if(CUR_USER) localStorage.setItem(storageKey(CUR_USER), JSON.stringify(ST)); }
 
 function selectUser(uid, name, cls){
+  // Save previous user's state before switching
+  saveST();
   CUR_USER = uid;
+  CUR_LESSON = null;
+  CUR_BLOCK = 'vocab';
   ST = loadST(uid);
   document.getElementById('user-screen').style.display = 'none';
   const badge = document.getElementById('user-badge');
   badge.style.display = 'block';
   badge.className = 'user-badge ' + cls;
   badge.textContent = (uid==='assel'?'👩‍💼 ':'🙋 ') + name;
+  // Always reset to home and clear any lesson content
+  document.getElementById('lcontent').innerHTML = '';
+  document.getElementById('btabs').innerHTML = '';
+  showScreen('s-home');
   renderHome();
 }
 
 function switchUser(){
+  // Save current user's progress before showing switcher
+  saveST();
   document.getElementById('user-screen').style.display = 'flex';
 }
 
@@ -918,6 +928,7 @@ function renderGrammar(c){
           fb.className='gq-fb show'; fb.style.color=ok?'var(--green)':'var(--red)';
           fb.textContent=ok?'✓ Верно!':'✗ Правильно: '+q.a+(q.hint?' ('+q.hint+')':'');
           item.querySelector('.check-btn').disabled=true; inp.readOnly=true;
+          ST[key]=inp.value; saveST();
         };
         qz.appendChild(item);
       });
@@ -1088,6 +1099,28 @@ function renderTest(c){
   }
 
   c.appendChild(wrap);
+
+  // Always-visible finish button
+  const finishBtn = document.createElement('button');
+  finishBtn.className = 'done-btn' + (ST['p_'+L.id]&&ST['p_'+L.id]['test'] ? ' done' : '');
+  finishBtn.id = 'ft-finish-btn';
+  finishBtn.textContent = ST['p_'+L.id]&&ST['p_'+L.id]['test'] ? '✓ Тест пройден' : '🏁 Завершить тест и сохранить';
+  finishBtn.onclick = () => {
+    const answered = wrap.querySelectorAll('.ft-q[data-answered]');
+    const correct = wrap.querySelectorAll('.ft-q[data-ok="1"]').length;
+    const total = L.finalTest.length;
+    const pct = answered.length > 0 ? Math.round(correct/answered.length*100) : 0;
+    if(!ST['p_'+L.id]) ST['p_'+L.id]={};
+    ST['p_'+L.id]['test_score'] = {correct, answered: answered.length, total, pct, ts: Date.now()};
+    ST['p_'+L.id]['test'] = true;
+    saveST();
+    renderTabs();
+    if(typeof markTodayStudied === 'function') markTodayStudied();
+    finishBtn.className = 'done-btn done';
+    finishBtn.textContent = '✓ Тест пройден';
+    showToast('Результат сохранён! ' + correct + '/' + answered.length + ' верных ответов 🎉');
+  };
+  c.appendChild(finishBtn);
 }
 
 function checkAllAnswered(wrap, L, mcQs, fiQs){
@@ -1097,11 +1130,56 @@ function checkAllAnswered(wrap, L, mcQs, fiQs){
 
   const correct = wrap.querySelectorAll('.ft-q[data-ok="1"]').length;
   const pct = Math.round(correct/total*100);
+
+  // ── Track errors from finalTest ──────────────────────────────
+  // MC questions
+  wrap.querySelectorAll('.ft-q[data-answered][data-ok="0"]').forEach((box, bi) => {
+    // Try to extract a word from the question text for error tracking
+    const qtxt = box.querySelector('.ft-q-txt');
+    if(qtxt){
+      const src = `Урок ${L.id} — Финальный тест`;
+      // Find vocab word that matches question if possible
+      const qtxtContent = qtxt.textContent;
+      const vocabMatch = L.vocab && L.vocab.find(v =>
+        qtxtContent.toLowerCase().includes(v.en.toLowerCase())
+      );
+      if(vocabMatch) addError(vocabMatch.en, vocabMatch.ru, src);
+    }
+  });
+
+  // FI questions — match wrong answers to vocab
+  wrap.querySelectorAll('.ft-inp.wrong').forEach(inp => {
+    const box = inp.closest('.ft-q');
+    if(!box) return;
+    const qtxt = box.querySelector('.ft-q-txt');
+    if(!qtxt) return;
+    const qtxtContent = qtxt.textContent;
+    const vocabMatch = L.vocab && L.vocab.find(v =>
+      qtxtContent.toLowerCase().includes(v.en.toLowerCase()) ||
+      qtxtContent.toLowerCase().includes(v.ru.toLowerCase())
+    );
+    if(vocabMatch) addError(vocabMatch.en, vocabMatch.ru, `Урок ${L.id} — Финальный тест`);
+  });
+
+  // ── Save result & mark ALL blocks done ──────────────────────
+  if(!ST['p_'+L.id]) ST['p_'+L.id]={};
+  ST['p_'+L.id]['test_score'] = {correct, total, pct, ts: Date.now()};
+  // Mark test block done
+  BLOCKS.forEach(b => { if(!ST['p_'+L.id][b]) ST['p_'+L.id][b] = false; });
+  ST['p_'+L.id]['test'] = true;
+  saveST();
+  renderTabs();
+  if(typeof markTodayStudied === 'function') markTodayStudied();
+
+  // ── Result UI ────────────────────────────────────────────────
   let msg='', color='var(--accent)';
   if(pct>=90){msg='Отлично! Материал урока усвоен превосходно! 🎉';color='var(--green)';}
   else if(pct>=75){msg='Хорошо! Есть небольшие пробелы — повтори выделенные темы. 💪';color='#1A7A42';}
-  else if(pct>=60){msg='Неплохо, но стоит повторить грамматику и словарь. 📖';color=color;}
+  else if(pct>=60){msg='Неплохо, но стоит повторить грамматику и словарь. 📖';}
   else{msg='Рекомендуем пройти урок заново. Не сдавайся! 🚀';color='var(--orange)';}
+
+  const old = wrap.querySelector('.ft-result');
+  if(old) old.remove();
 
   const res=document.createElement('div'); res.className='ft-result';
   res.innerHTML=`<div class="ft-score" style="color:${color}">${correct}/${total}</div>
@@ -1109,15 +1187,22 @@ function checkAllAnswered(wrap, L, mcQs, fiQs){
     <div class="ft-msg">${msg}</div>
     <div class="ft-btns">
       <button class="ft-retry" onclick="showBlock('test')">🔄 Пройти снова</button>
-      <button class="ft-home" onclick="markDoneAndHome()">✓ Завершить урок</button>
+      <button class="ft-home" onclick="markDoneAndHome()">🏁 Завершить урок</button>
     </div>`;
   wrap.appendChild(res);
+  res.scrollIntoView({behavior:'smooth', block:'center'});
 
-  if(pct>=60) markBlockDone('test');
+  // Sync the always-visible finish button
+  const fb = document.getElementById('ft-finish-btn');
+  if(fb){ fb.className='done-btn done'; fb.textContent='✓ Тест пройден'; }
 }
 
 window.markDoneAndHome = function(){
-  markBlockDone('test');
+  if(CUR_LESSON){
+    if(!ST['p_'+CUR_LESSON.id]) ST['p_'+CUR_LESSON.id]={};
+    ST['p_'+CUR_LESSON.id]['test'] = true;
+    saveST();
+  }
   goHome();
   showToast('Урок завершён! Отличная работа 🎉');
 };
@@ -1157,6 +1242,10 @@ window.onload = function(){
   }
   document.getElementById('user-screen').style.display='flex';
 };
+
+// Auto-save on page hide or close
+window.addEventListener('beforeunload', () => saveST());
+document.addEventListener('visibilitychange', () => { if(document.hidden) saveST(); });
 
 // patch selectUser to save last user
 const _origSelect = selectUser;
